@@ -4,25 +4,25 @@ const features = [
   {
     name: 'Save for the future',
     description:
-      'Easily save your favorite meals and plans for future grocery orders.',
+      'Easily save your strategy to revisit on a quarterly basis.',
     icon: CloudArrowUpIcon,
   },
   {
     name: 'Generate new ideas',
     description:
-      'Generate new ideas based on your preferences if you are looking for new inspiration.',
+      'Generate new ideas based on your needs and inspire additional brainstorming in team offsites.',
     icon: ArrowPathIcon,
   },
   {
     name: 'Custom to your needs',
     description:
-      'Customize your plans based on your dietary needs and preferences.',
+      'Customize your strategy based on your industry, function, market trends, and current challenges.',
     icon: FingerPrintIcon,
   },
   {
     name: 'Securely share with your team',
     description:
-      'Curate a list of common ingredients to reduce common food waste in traditional adhoc meal planning.',
+      'Share with your team to increase accountability and accelerate execution throughout the quarter.',
     icon: LockClosedIcon,
   },
 ]

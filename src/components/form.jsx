@@ -25,42 +25,6 @@ export default function StrategyForm() {
         "Key Performance Indicators (KPIs)",
     ];
 
-    /*const standardPrompt = `Please generate a strategic plan that includes 5 annual objectives, key results, and timelines. Structure the response in the following JSON format:
-
-    {
-      "objectives": [
-        {
-          "objective": "Increase market share by 10%",
-          "keyResults": [
-            {
-              "keyResult": "Launch new product line",
-              "timeline": "Q2 2024"
-            },
-            {
-              "keyResult": "Increase customer acquisition rate by 20%",
-              "timeline": "Q3 2024"
-            }
-          ]
-        },
-        {
-          "objective": "Reduce operational costs by 5%",
-          "keyResults": [
-            {
-              "keyResult": "Implement new cost-saving software",
-              "timeline": "Q1 2024"
-            },
-            {
-              "keyResult": "Optimize supply chain logistics",
-              "timeline": "Q4 2024"
-            }
-          ]
-        }
-      ]
-    }
-
-    Please ensure the JSON format is valid and clearly separated by each objective.`
-*/
-
     const preferencePrompts = {
       "Vision Statement": `Provide a vision statement in JSON format like this: 
       {
@@ -98,8 +62,18 @@ export default function StrategyForm() {
           .map((pref) => preferencePrompts[pref])
           .join("\n");
 
-        const customPrompt = `Based on the description of the team: "${teamDescription}", please provide the following in JSON format:
+        const customPrompt = `
+          Based on the description of the team: "${teamDescription}", please provide the following outputs as a single JSON object. 
+          Each selected preference (e.g., Vision Statement, Strategies, etc.) should be a key with its respective value or array. Ensure the response is strictly in JSON format without additional text or line breaks. Use this format:
+          {
+            "Vision Statement": "...",
+            "Mission Statement": "...",
+            "Goals": [...],
+            "Strategies": [...],
+            "KPIs": [...]
+          }
           ${selectedPrompts}`;
+          
 
         setLoading(true);
 
@@ -120,25 +94,48 @@ export default function StrategyForm() {
         });
 
         const data = await result.json();
-        //console.log("Raw API Response Content:", data.choices[0].message.content);
 
+        // Log the response for debugging
+        console.log("API response:", data);
+
+        if (!data || !data.choices || !data.choices[0] || !data.choices[0].message) {
+          console.error("Unexpected API response format.", data);
+          setResponse("Invalid response from API.");
+          return;
+        }
+
+        const rawContent = data.choices[0].message.content;
+        console.log("Raw content:", rawContent);
+       
         // Try to parse the content as JSON
         let parsedResponse;
         try {
-            parsedResponse = JSON.parse(data.choices[0].message.content);
+          parsedResponse = JSON.parse(rawContent);
         } catch (parseError) {
-            console.error("Response parsing error. Using fallback approach.", parseError);
-        }
+          console.warn("Failed to parse JSON response. Falling back to raw content.");
+          parsedResponse = rawContent;
+        }        
 
-        //console.log("Final Parsed Response:", parsedResponse);
+        console.log("Final Parsed Response:", parsedResponse);
         setResponse(parsedResponse);
 
         } catch (error) {
-        console.error('Error fetching data from OpenAI API:', error);
+          console.error("Error in fetchOpenAiResponse:", error);
+          setResponse("Error communicating with OpenAI API.");
         } finally {
-        setLoading(false);
+          setLoading(false);
         }
     };
+    
+    /*const handleSubmit = (e) => {
+      e.preventDefault();
+  
+      // Reset form fields before making the request
+      setSelectedPreferences([]);
+      setTeamDescription('');
+      setResponse(''); // Clear previous response
+      fetchOpenAiResponse(); // Make the API call
+  };*/
     
     return (
       <div className="max-w-4xl mx-auto p-6 space-y-6">
