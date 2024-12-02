@@ -65,13 +65,7 @@ export default function StrategyForm() {
         const customPrompt = `
           Based on the description of the team: "${teamDescription}", please provide the following outputs as a single JSON object. 
           Each selected preference (e.g., Vision Statement, Strategies, etc.) should be a key with its respective value or array. Ensure the response is strictly in JSON format without additional text or line breaks. Use this format:
-          {
-            "Vision Statement": "...",
-            "Mission Statement": "...",
-            "Goals": [...],
-            "Strategies": [...],
-            "KPIs": [...]
-          }
+          
           ${selectedPrompts}`;
           
 
@@ -126,16 +120,6 @@ export default function StrategyForm() {
           setLoading(false);
         }
     };
-    
-    /*const handleSubmit = (e) => {
-      e.preventDefault();
-  
-      // Reset form fields before making the request
-      setSelectedPreferences([]);
-      setTeamDescription('');
-      setResponse(''); // Clear previous response
-      fetchOpenAiResponse(); // Make the API call
-  };*/
     
     return (
       <div className="max-w-4xl mx-auto p-6 space-y-6">
