@@ -71,55 +71,74 @@ export default function StrategyForm() {
 
         setLoading(true);
 
+        const requestApi = async (prompt) => {
+          try {
+            const result = await fetch('https://api.openai.com/v1/chat/completions', {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${process.env.REACT_APP_OPENAI_API_KEY}`,
+              },
+              body: JSON.stringify({
+                model: "gpt-3.5-turbo",
+                messages: [{ role: "user", content: prompt }],
+                max_tokens: 1000,
+              }),
+            });
+      
+            const data = await result.json();
+      
+            if (!data || !data.choices || !data.choices[0] || !data.choices[0].message) {
+              throw new Error("Unexpected API response format.");
+            }
+      
+            const rawContent = data.choices[0].message.content;
+      
+            // Attempt to parse the content as JSON
+            let parsedResponse;
+            try {
+              parsedResponse = JSON.parse(rawContent);
+      
+              // Check if the parsed response has the expected structure
+              if (typeof parsedResponse === 'object' && Object.keys(parsedResponse).length > 0) {
+                return parsedResponse; // JSON is valid, return it
+              } else {
+                throw new Error("Invalid JSON structure");
+              }
+            } catch (parseError) {
+              console.warn("Parsing failed. Response is not valid JSON.");
+              throw parseError; // Retry with stricter prompt
+            }
+          } catch (error) {
+            console.error("Error in requestApi:", error);
+            throw error;
+          }
+        };
+      
         try {
-        const result = await fetch('https://api.openai.com/v1/chat/completions', {
-            method: 'POST',
-            headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${process.env.REACT_APP_OPENAI_API_KEY}`,
-            },
-            body: JSON.stringify({
-            model: "gpt-3.5-turbo", 
-            messages: [
-                { role: "user", content: customPrompt }
-            ],
-            max_tokens: 1000,
-            }),
-        });
-
-        const data = await result.json();
-
-        // Log the response for debugging
-        console.log("API response:", data);
-
-        if (!data || !data.choices || !data.choices[0] || !data.choices[0].message) {
-          console.error("Unexpected API response format.", data);
-          setResponse("Invalid response from API.");
-          return;
-        }
-
-        const rawContent = data.choices[0].message.content;
-        console.log("Raw content:", rawContent);
-       
-        // Try to parse the content as JSON
-        let parsedResponse;
-        try {
-          parsedResponse = JSON.parse(rawContent);
-        } catch (parseError) {
-          console.warn("Failed to parse JSON response. Falling back to raw content.");
-          parsedResponse = rawContent;
-        }        
-
-        console.log("Final Parsed Response:", parsedResponse);
-        setResponse(parsedResponse);
-
-        } catch (error) {
-          console.error("Error in fetchOpenAiResponse:", error);
-          setResponse("Error communicating with OpenAI API.");
+          // First attempt
+          const response = await requestApi(customPrompt);
+          setResponse(response);
+        } catch (firstError) {
+          console.warn("First attempt failed. Retrying with stricter prompt...");
+      
+          // Retry with stricter instructions
+          const retryPrompt = `
+            Your previous response was not in valid JSON format. Please strictly provide the response in JSON format with no additional text, only a single valid JSON object. The structure should match:
+            
+            ${selectedPrompts}`;
+      
+          try {
+            const retryResponse = await requestApi(retryPrompt);
+            setResponse(retryResponse);
+          } catch (retryError) {
+            console.error("Retry attempt failed:", retryError);
+            setResponse("The API response is not in the expected format. Please try again later.");
+          }
         } finally {
           setLoading(false);
         }
-    };
+      };
     
     return (
       <div className="max-w-4xl mx-auto p-6 space-y-6">
