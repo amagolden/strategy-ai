@@ -1,6 +1,76 @@
 import React, { useState } from 'react';
+import jsPDF from 'jspdf';
 
 const Response = ({ response, loading  }) => {  
+
+  // Function to download the response as PDF
+  const downloadPDF = () => {
+    if (!response || Object.keys(response).length === 0) {
+      alert("No strategic plan available to download!");
+      return;
+    }
+  
+    const doc = new jsPDF();
+    const pageWidth = doc.internal.pageSize.width;
+    const margin = 10; // Margin for left and right
+    const maxWidth = pageWidth - margin * 2; // Max width for text
+    let y = 10; // Starting vertical offset
+  
+    // Utility function to pretty print JSON content
+    const formatContent = (content, indent = "") => {
+      if (Array.isArray(content)) {
+        return content
+          .map((item) => {
+            if (typeof item === "object") {
+              return `${indent}- ${formatContent(item, `${indent}  `)}`;
+            }
+            return `${indent}- ${item}`;
+          })
+          .join("\n");
+      } else if (typeof content === "object") {
+        return Object.entries(content)
+          .map(([key, value]) => `${indent}${key}: ${formatContent(value, `${indent}  `)}`)
+          .join("\n");
+      } else {
+        return `${indent}${content}`;
+      }
+    };
+  
+    // Title
+    doc.setFontSize(16);
+    doc.text("Strategic Planning", margin, y);
+    y += 10; // Add space after title
+  
+    // Add each section to the PDF
+    for (const [section, content] of Object.entries(response)) {
+      // Section Header
+      doc.setFontSize(14);
+      doc.setTextColor(100, 149, 237); // Indigo color for section headers
+      doc.text(section.replace(/_/g, " "), margin, y);
+      y += 10;
+  
+      // Section Content
+      doc.setFontSize(12);
+      doc.setTextColor(0); // Black for content
+  
+      const formattedContent = formatContent(content);
+      const lines = doc.splitTextToSize(formattedContent, maxWidth); // Split text to fit
+      lines.forEach((line) => {
+        if (y > doc.internal.pageSize.height - margin) {
+          doc.addPage(); // Add a new page
+          y = margin; // Reset vertical offset
+        }
+        doc.text(line, margin, y);
+        y += 7; // Line spacing
+      });
+  
+      y += 5; // Add some space between sections
+    }
+  
+    // Save the PDF
+    doc.save("strategic_plan.pdf");
+  };
+  
 
   const downloadCSV = () => {
     if (!response || Object.keys(response).length === 0) {
@@ -11,7 +81,7 @@ const Response = ({ response, loading  }) => {
     const csvRows = [];
   
     // Add the header row
-    csvRows.push("Section,Objective/Strategy/KPI,Key Result/Detail,Timeline");
+    csvRows.push("Section,Objective/Strategy/KPI");
   
     // Check if response is an object before proceeding
     if (typeof response === "object" && response !== null) {
@@ -27,19 +97,19 @@ const Response = ({ response, loading  }) => {
           items.forEach((item) => {
             if (section === "Goals" && item?.Goal && item?.Objective) {
               csvRows.push(
-                `${section},${item.Goal || "N/A"}: ${item.Objective || "N/A"},N/A,N/A`
+                `${section},${item.Goal || "N/A"}: ${item.Objective || "N/A"}`
               );
             }
             // Check for Strategies
             else if (section === "Strategies" && item?.Strategy) {
               csvRows.push(
-                `${section},${item.Strategy || "N/A"},N/A,N/A`
+                `${section},${item.Strategy || "N/A"}`
               );
             }
             // Check for KPIs
             else if (section === "KPIs" && item?.Metric) {
               csvRows.push(
-                `${section},${item.Metric || "N/A"}: ${item.Target || "N/A"},N/A,N/A`
+                `${section},${item.Metric || "N/A"}: ${item.Target || "N/A"}`
               );
             } else {
               console.log(`Unexpected item structure for section "${section}":`, item);
@@ -47,7 +117,7 @@ const Response = ({ response, loading  }) => {
           });
         } else {
           // If the section is not an array (e.g., Vision Statement or Mission Statement)
-          csvRows.push(`${section},${items || "N/A"},N/A,N/A`);
+          csvRows.push(`${section},${items || "N/A"}`);
         }
       }
     } else {
@@ -178,6 +248,12 @@ const Response = ({ response, loading  }) => {
         className="rounded-md bg-gray-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-gray-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gray-600"
       >
         Download as CSV
+      </button>
+      <button
+        onClick={downloadPDF}
+        className="rounded-md bg-gray-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-gray-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gray-600"
+      >
+        Download as PDF
       </button>
     </div>
   );

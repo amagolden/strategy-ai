@@ -34,21 +34,21 @@ export default function StrategyForm() {
       {
         "Mission Statement": "Your mission here."
       }`,
-      "Goals & Objectives": `List goals and objectives in JSON format like this: 
+      "Goals & Objectives": `List at least 5 goals and objectives in JSON format like this: 
       {
         "Goals": [
           { "Goal": "Increase market share", "Objective": "Expand to new markets by 2025" },
           { "Goal": "Improve customer satisfaction", "Objective": "Enhance customer support systems" }
         ]
       }`,
-      "Strategies": `Outline strategies in JSON format like this: 
+      "Strategies": `Outline at least 3 strategies in JSON format like this: 
       {
         "Strategies": [
           { "Strategy": "Adopt a digital-first marketing approach" },
           { "Strategy": "Streamline supply chain operations" }
         ]
       }`,
-      "Key Performance Indicators (KPIs)": `Provide KPIs in JSON format like this: 
+      "Key Performance Indicators (KPIs)": `Provide at least 5 KPIs in JSON format like this: 
       {
         "KPIs": [
           { "Metric": "Customer retention rate", "Target": "90%" },
